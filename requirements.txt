@@ -1,0 +1,13 @@
+fastapi>=0.115
+uvicorn>=0.30
+mangum>=0.17
+
+python-dotenv>=1.0
+
+
+pydantic>=2.7
+requests>=2.32
+
+langchain==0.2.16
+langchain-core==0.2.38
+langchain-openai==0.1.22
