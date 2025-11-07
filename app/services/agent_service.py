@@ -1,5 +1,4 @@
-# app/services/agent_service.py
-from typing import Optional
+from typing import Any, Optional
 
 from app.config import OPENAI_API_KEY, OPENAI_MODEL
 # Si tu servicio de tienda tiene un "ensure token", impórtalo aquí.
@@ -17,9 +16,7 @@ from app.tools.store_tools import (
 )
 
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_tool_calling_agent  # 0.2.x
-from langchain.agents import AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.agents import create_agent
 
 # ========================
 # Herramientas del Store
@@ -54,7 +51,7 @@ Reglas:
 # ========================
 # Construcción del Agente
 # ========================
-def build_agent() -> AgentExecutor:
+def build_agent() -> Any:
     if not OPENAI_API_KEY:
         raise RuntimeError("Falta OPENAI_API_KEY en variables de entorno.")
 
@@ -66,30 +63,19 @@ def build_agent() -> AgentExecutor:
         max_retries=2,
     )
 
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM_PROMPT),
-            MessagesPlaceholder("chat_history"),
-            ("human", "{input}"),
-            MessagesPlaceholder("agent_scratchpad"),
-        ]
-    )
-
-    agent = create_tool_calling_agent(llm, STORE_TOOLS, prompt)
-
-    # Nota: puedes activar verbose=True en desarrollo para ver los pasos.
-    executor = AgentExecutor(
-        agent=agent,
+    agent = create_agent(
+        model=llm,
         tools=STORE_TOOLS,
-        verbose=False,
-        handle_parsing_errors=True,  # más robusto ante respuestas parciales del modelo
+        system_prompt=SYSTEM_PROMPT,
     )
-    return executor
+
+    return agent
 
 
-AGENT_EXECUTOR: Optional[AgentExecutor] = None
 
-def ensure_agent() -> AgentExecutor:
+AGENT_EXECUTOR: Optional[Any] = None
+
+def ensure_agent() -> Any:
     """
     Inicializa el agente en singleton y hace un ensure opcional del token del Store.
     """

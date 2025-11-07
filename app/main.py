@@ -7,10 +7,6 @@ from app.utils.logger import logger
 
 from mangum import Mangum
 
-# ========================
-# FastAPI app
-# ========================
-
 app = FastAPI(
     title="Store Agent",
     description="API",
@@ -31,9 +27,19 @@ def health():
 
 @app.post("/invoke", response_model=InvokeResponse)
 def invoke(req: InvokeRequest = Body(...)):
-    executor = ensure_agent()
-    result = executor.invoke({"input": req.input, "chat_history": req.chat_history or []})
-    return InvokeResponse(message=result.get("output", ""), debug=None)
+    agent = ensure_agent()
+    messages = (req.chat_history or []) + [{"role": "user", "content": req.input}]
+    result = agent.invoke({"messages": messages})
+
+    msgs = result.get("messages", [])
+    last = msgs[-1] if msgs else None
+    out = (
+        getattr(last, "content", None)
+        if last is not None and hasattr(last, "content")
+        else (last.get("content") if isinstance(last, dict) else None)
+    ) or "No pude generar una respuesta."
+
+    return InvokeResponse(message=out, debug=None)
 
 # Verificación del webhook (GET)
 @app.get("/webhook")
@@ -70,10 +76,25 @@ async def whatsapp_webhook(req: Request):
     if not text or not from_phone:
         return {"status": "ignored"}
 
-    # Ejecutar agente con tus tools (Store)
+    # Ejecutar agente con tus tools (Moodle)
     executor = ensure_agent()
-    result = executor.invoke({"input": text, "chat_history": []})
-    bot_reply = result.get("output", "No pude generar una respuesta.")
+    result = executor.invoke({
+        'messages': [
+            {'role': 'user', 'content': text}
+        ]
+    })
+
+    messages = result.get("messages", [])
+    last = messages[-1] if messages else None
+
+    bot_reply = (
+        getattr(last, "content", None)  # objetos LangChain (AIMessage/BaseMessage)
+        if last is not None and hasattr(last, "content")
+        else (last.get("content") if isinstance(last, dict) else None)  # dicts
+    ) or "No pude generar una respuesta."
+
+    if not bot_reply:
+        bot_reply = "No pude generar una respuesta."
 
     # Enviar respuesta por WhatsApp
     send_res = _wa_send_text(business_phone_id, from_phone, bot_reply, reply_to_message_id=message_id)
@@ -84,9 +105,8 @@ async def whatsapp_webhook(req: Request):
 
     return {"status": "ok", "agent_answer": bot_reply, "send_result": send_res}
 
-# ========================
+
 # Lambda adapter
-# ========================
 lambda_handler = Mangum(app)
 
 # ============== Local Dev ==============
