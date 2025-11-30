@@ -133,3 +133,63 @@ def tk_sales_create(payload: Dict[str, Any]) -> Any:
 def tk_cashbox_current(store_id: int) -> Any:
     # GET /cashbox/current/{storeId}
     return tk_call("GET", f"/cashbox/current/{store_id}")
+
+def getStoreByName(name: str) -> Any:
+    # GET /stores/name/{name}
+    return tk_call("GET", f"/stores/name/{name}")
+
+# === Shopping Cart API ====
+
+def tk_shopping_carts_by_store(store_id: int) -> Any:
+    """
+    GET /shoppingCart/store/{storeId}
+    Lista los carritos de una tienda específica.
+    """
+    return tk_call("GET", f"/shoppingCart/store/{store_id}")
+
+
+def tk_shopping_cart_create(payload: Dict[str, Any]) -> Any:
+    """
+    POST /shoppingCart/
+    Crea un carrito.
+    Ejemplo de payload:
+    {
+      "store_id": 1,
+      "customer_phone": "76742300",
+      "customer_name": "Juan Pérez",
+      "items": [
+        {"product_id": 1, "quantity": 2, "unit_price": 20.00},
+        {"product_id": 2, "quantity": 1, "unit_price": 5.00}
+      ]
+    }
+    """
+    return tk_call("POST", "/shoppingCart/", json_body=payload)
+
+
+def tk_shopping_cart_update(cart_id: int, payload: Dict[str, Any]) -> Any:
+    """
+    PUT /shoppingCart/{id}
+    Actualiza un carrito existente.
+    """
+    return tk_call("PUT", f"/shoppingCart/{cart_id}", json_body=payload)
+
+
+def tk_shopping_cart_delete(cart_id: int) -> Any:
+    """
+    DELETE /shoppingCart/{id}
+    Elimina un carrito.
+    """
+    return tk_call("DELETE", f"/shoppingCart/{cart_id}")
+
+
+def tk_shopping_cart_finalize(cart_id: int, payload: Dict[str, Any]) -> Any:
+    """
+    POST /shoppingCart/{id}/finalize
+    Finaliza la venta de un carrito.
+    Ejemplo de payload:
+    {
+      "userId": 1,
+      "paymentMethod": "CASH"
+    }
+    """
+    return tk_call("POST", f"/shoppingCart/{cart_id}/finalize", json_body=payload)
