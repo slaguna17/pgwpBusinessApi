@@ -6,14 +6,14 @@ from app.services.store_service import (
     tk_login_user_info, 
     tk_products_list, 
     tk_product_by_id,
-    tk_sales_create, 
-    tk_cashbox_current, 
+    tk_cashbox_current,
+    tk_stores_list,
+    tk_store_by_id,
     tk_call,
     tk_shopping_carts_by_store,
     tk_shopping_cart_create,
     tk_shopping_cart_update,
     tk_shopping_cart_delete,
-    tk_shopping_cart_finalize,
 )
 
 @tool("tk_force_relogin", return_direct=False)
@@ -40,31 +40,20 @@ def tk_product_by_id_tool(product_id: int) -> str:
     """Obtiene un producto por ID."""
     return json.dumps(tk_product_by_id(product_id))
 
-@tool("tk_sales_create", return_direct=False)
-def tk_sales_create_tool(
-    store_id: int,
-    user_id: int,
-    products: List[Dict[str, Any]],
-    payment_method: str = "cash",
-    notes: Optional[str] = None
-) -> str:
-    """
-    Crea una venta. products: [{product_id, quantity, unit_price}, ...]
-    """
-    payload = {
-        "store_id": store_id,
-        "user_id": user_id,
-        "products": products,
-        "payment_method": payment_method
-    }
-    if notes:
-        payload["notes"] = notes
-    return json.dumps(tk_sales_create(payload))
-
 @tool("tk_cashbox_current", return_direct=False)
 def tk_cashbox_current_tool(store_id: int) -> str:
     """Estado actual de la caja para una tienda."""
     return json.dumps(tk_cashbox_current(store_id))
+
+@tool("tk_stores", return_direct=False)
+def tk_stores() -> str:
+    """Lista todas las tiendas."""
+    return json.dumps(tk_stores_list())
+
+@tool("tk_store_by_id", return_direct=False)
+def tk_store_by_id_tool(store_id: int) -> str:
+    """Obtiene una tienda por ID."""
+    return json.dumps(tk_store_by_id(store_id))
 
 @tool("tk_raw", return_direct=False)
 def tk_raw(method: str, path: str, params_json: Optional[str] = None, body_json: Optional[str] = None) -> str:
@@ -165,26 +154,3 @@ def tk_cart_delete(cart_id: int) -> str:
     return json.dumps(data)
 
 
-@tool("tk_cart_finalize", return_direct=False)
-def tk_cart_finalize(
-    cart_id: int,
-    user_id: int,
-    payment_method: str = "CASH",
-) -> str:
-    """
-    Finaliza la venta del carrito.
-
-    payment_method: por ejemplo "CASH", "CARD", etc.
-
-    Payload que se envía:
-      {
-        "userId": user_id,
-        "paymentMethod": payment_method
-      }
-    """
-    payload = {
-        "userId": user_id,
-        "paymentMethod": payment_method,
-    }
-    data = tk_shopping_cart_finalize(cart_id, payload)
-    return json.dumps(data)

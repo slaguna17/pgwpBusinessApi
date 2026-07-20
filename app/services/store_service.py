@@ -126,10 +126,6 @@ def tk_product_by_id(product_id: int) -> Any:
     # GET /products/{id}
     return tk_call("GET", f"/products/{product_id}")
 
-def tk_sales_create(payload: Dict[str, Any]) -> Any:
-    # POST /sales/createSale
-    return tk_call("POST", "/sales/createSale", json_body=payload)
-
 def tk_cashbox_current(store_id: int) -> Any:
     # GET /cashbox/current/{storeId}
     return tk_call("GET", f"/cashbox/current/{store_id}")
@@ -137,6 +133,14 @@ def tk_cashbox_current(store_id: int) -> Any:
 def getStoreByName(name: str) -> Any:
     # GET /stores/name/{name}
     return tk_call("GET", f"/stores/name/{name}")
+
+def tk_stores_list() -> Any:
+    # GET /stores/
+    return tk_call("GET", "/stores/")
+
+def tk_store_by_id(store_id: int) -> Any:
+    # GET /stores/{id}
+    return tk_call("GET", f"/stores/{store_id}")
 
 # === Shopping Cart API ====
 
@@ -182,14 +186,3 @@ def tk_shopping_cart_delete(cart_id: int) -> Any:
     return tk_call("DELETE", f"/shoppingCart/{cart_id}")
 
 
-def tk_shopping_cart_finalize(cart_id: int, payload: Dict[str, Any]) -> Any:
-    """
-    POST /shoppingCart/{id}/finalize
-    Finaliza la venta de un carrito.
-    Ejemplo de payload:
-    {
-      "userId": 1,
-      "paymentMethod": "CASH"
-    }
-    """
-    return tk_call("POST", f"/shoppingCart/{cart_id}/finalize", json_body=payload)

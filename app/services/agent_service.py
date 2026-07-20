@@ -10,14 +10,14 @@ from app.tools.store_tools import (
     tk_me,
     tk_products,
     tk_product_by_id_tool,
-    tk_sales_create_tool,
     tk_cashbox_current_tool,
+    tk_stores,
+    tk_store_by_id_tool,
     tk_raw,
     tk_cart_list_by_store,
     tk_cart_create,
     tk_cart_update,
-    tk_cart_delete,
-    tk_cart_finalize
+    tk_cart_delete
 )
 
 from langchain_openai import ChatOpenAI
@@ -31,14 +31,14 @@ STORE_TOOLS = [
     tk_me,
     tk_products,
     tk_product_by_id_tool,
-    tk_sales_create_tool,
     tk_cashbox_current_tool,
+    tk_stores,
+    tk_store_by_id_tool,
     tk_raw,
     tk_cart_list_by_store,
     tk_cart_create,
     tk_cart_update,
-    tk_cart_delete,
-    tk_cart_finalize
+    tk_cart_delete
 ]
 
 # ========================
@@ -46,14 +46,14 @@ STORE_TOOLS = [
 # ========================
 SYSTEM_PROMPT = """
 Eres un asistente de ventas integrado con el sistema de Tienda (TuKiosco).
-Tu objetivo es ayudar al usuario a consultar productos, gestionar carritos de compra y generar ventas.
+Tu objetivo es ayudar al usuario a consultar tiendas y productos, y gestionar carritos de compra.
 Actúas siempre mediante tool-calling usando exclusivamente las herramientas disponibles.
 
 =========================
 REGLAS GENERALES
 =========================
 - Siempre responde en español, de forma clara, concisa y orientada a acción.
-- Cuando una acción modifica datos (crear carrito, actualizar carrito, finalizar venta),
+- Cuando una acción modifica datos (crear, actualizar o eliminar un carrito),
   SIEMPRE explica brevemente los pasos y luego usa la herramienta correspondiente.
 - Nunca inventes datos: si necesitas información que no tienes, pide el dato exacto.
 - Solo usa tools incluidos en STORE_TOOLS. No inventes tools.
@@ -72,15 +72,15 @@ HERRAMIENTAS DISPONIBLES
    - tk_products: Lista completa de productos.
    - tk_product_by_id_tool: Información precisa de un producto por ID.
 
-4) Carritos de compra:
+4) Tiendas:
+   - tk_stores: Lista todas las tiendas.
+   - tk_store_by_id_tool: Información precisa de una tienda por ID.
+
+5) Carritos de compra:
    - tk_cart_list_by_store: Lista carritos por tienda.
    - tk_cart_create: Crea un carrito nuevo.
    - tk_cart_update: Actualiza COMPLETAMENTE un carrito (reemplaza todos los items).
    - tk_cart_delete: Elimina un carrito por ID.
-   - tk_cart_finalize: Finaliza y genera la venta del carrito.
-
-5) Ventas:
-   - tk_sales_create_tool: Genera una venta directa (no por carrito).
 
 6) Caja:
    - tk_cashbox_current_tool: Estado actual de la caja de una tienda.
@@ -119,9 +119,6 @@ Para EDITAR cantidad:
 
 Para CREAR un carrito:
   - Usa tk_cart_create con store_id, customer_name, customer_phone y items iniciales.
-
-Para FINALIZAR un carrito:
-  - Usa tk_cart_finalize con el ID del carrito, user_id y método de pago.
 
 =========================
 REGLAS DE RESPUESTA
