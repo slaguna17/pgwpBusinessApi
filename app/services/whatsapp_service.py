@@ -6,20 +6,25 @@ from app.config import WHATSAPP_PHONE_ID, WHATSAPP_TOKEN
 def _extract_wa_message(payload: Dict[str, Any]) -> Dict[str, Optional[str]]:
     """
     Extrae campos clave del payload de WhatsApp Cloud:
-    - text, from_phone, message_id, business_phone_id
+    - text, from_phone, contact_name, message_id, business_phone_id
     """
-    text = from_phone = message_id = business_phone_id = None
+    text = from_phone = contact_name = message_id = business_phone_id = None
     try:
         entry = payload.get("entry", [])[0]
         change = entry.get("changes", [])[0]
         value = change.get("value", {})
         messages = value.get("messages", [])
+        contacts = value.get("contacts", [])
         metadata = value.get("metadata", {})
         business_phone_id = metadata.get("phone_number_id") or None
+        if contacts:
+            contact = contacts[0]
+            contact_name = contact.get("profile", {}).get("name") or None
+            from_phone = contact.get("wa_id") or None
         if messages:
             m = messages[0]
             message_id = m.get("id")
-            from_phone = m.get("from")
+            from_phone = m.get("from") or from_phone
             if m.get("type") == "text":
                 text = m.get("text", {}).get("body")
     except Exception:
@@ -27,6 +32,7 @@ def _extract_wa_message(payload: Dict[str, Any]) -> Dict[str, Optional[str]]:
     return {
         "text": text,
         "from_phone": from_phone,
+        "contact_name": contact_name,
         "message_id": message_id,
         "business_phone_id": business_phone_id
     }
